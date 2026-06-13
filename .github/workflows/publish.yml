@@ -1,12 +1,11 @@
 name: Publish
 
-# Publishes to the VS Code Marketplace and Open VSX when release-please publishes
-# a GitHub Release. Inert until the repo has a real `publisher` in package.json and
-# VSCE_PAT / OVSX_PAT secrets are configured.
-
+# Builds and publishes the extension to the VS Code Marketplace and Open VSX.
+# Called by release-please.yml after a release is created, and also runnable
+# manually (Actions -> Publish -> Run workflow) to publish the current main.
 on:
-  release:
-    types: [published]
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -31,7 +30,10 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: pnpm exec vsce publish --no-dependencies --packagePath theme-toggle.vsix -p "$VSCE_PAT"
 
+      # Open VSX (Cursor/Windsurf/VSCodium). Won't fail the run if the namespace
+      # isn't set up yet or no token is configured.
       - name: Publish to Open VSX
+        continue-on-error: true
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: pnpm exec ovsx publish theme-toggle.vsix -p "$OVSX_PAT"
