@@ -19,8 +19,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-name/theme-toggle.git"
+    "url": "https://github.com/dm3yb/lumina-theme-toggle-extension.git"
   },
+  "bugs": {
+    "url": "https://github.com/dm3yb/lumina-theme-toggle-extension/issues"
+  },
+  "homepage": "https://github.com/dm3yb/lumina-theme-toggle-extension#readme",
   "publisher": "aerixity",
   "main": "./dist/extension.js",
   "scripts": {
