@@ -1,4 +1,4 @@
-# Theme Toggle
+# Lumina – Theme Toggle
 
 Automatically switch between a **light** and a **dark** color theme — by sunrise/sunset, your operating system's appearance, a custom schedule, or on demand. Works in VS Code and VS Code–based editors (Cursor, Windsurf, VSCodium).
 
