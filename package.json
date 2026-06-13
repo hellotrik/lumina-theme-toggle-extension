@@ -1,0 +1,196 @@
+{
+  "name": "theme-toggle",
+  "displayName": "Theme Toggle",
+  "version": "0.2.0",
+  "description": "Automatically switch between a light and dark theme by sunrise/sunset, system preference, schedule, or manual toggle.",
+  "categories": [
+    "Other",
+    "Themes"
+  ],
+  "keywords": [
+    "auto theme",
+    "dark mode",
+    "light mode",
+    "sunrise",
+    "sunset",
+    "switcher",
+    "theme"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-name/theme-toggle.git"
+  },
+  "publisher": "aerixity",
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "pnpm run package-build",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package-build": "node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "lint": "oxlint src test",
+    "lint:fix": "oxlint --fix src test",
+    "fmt": "oxfmt src test",
+    "fmt:check": "oxfmt --check src test",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package --no-dependencies",
+    "publish:vsce": "vsce publish --no-dependencies",
+    "publish:ovsx": "ovsx publish --no-dependencies",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "date-fns": "^4.4.0",
+    "suncalc": "^1.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@types/suncalc": "^1.9.2",
+    "@types/vscode": "^1.74.0",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.28.1",
+    "husky": "^9.1.7",
+    "ovsx": "^0.10.0",
+    "oxfmt": "^0.54.0",
+    "oxlint": "^1.69.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.8"
+  },
+  "contributes": {
+    "icons": {
+      "theme-toggle-sun": {
+        "description": "Sun — light theme active",
+        "default": {
+          "fontPath": "./media/theme-toggle.woff",
+          "fontCharacter": "\\E000"
+        }
+      },
+      "theme-toggle-moon": {
+        "description": "Moon — dark theme active",
+        "default": {
+          "fontPath": "./media/theme-toggle.woff",
+          "fontCharacter": "\\E001"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "themeToggle.toggle",
+        "title": "Theme Toggle: Toggle Light/Dark Now",
+        "icon": "$(color-mode)"
+      },
+      {
+        "command": "themeToggle.selectMode",
+        "title": "Theme Toggle: Select Switching Mode"
+      },
+      {
+        "command": "themeToggle.selectLightTheme",
+        "title": "Theme Toggle: Select Light Theme"
+      },
+      {
+        "command": "themeToggle.selectDarkTheme",
+        "title": "Theme Toggle: Select Dark Theme"
+      },
+      {
+        "command": "themeToggle.toggleEnabled",
+        "title": "Theme Toggle: Enable/Disable Automatic Switching"
+      }
+    ],
+    "configuration": {
+      "title": "Theme Toggle",
+      "properties": {
+        "themeToggle.lightTheme": {
+          "type": "string",
+          "default": "Default Light Modern",
+          "description": "The theme to use for light mode. Set this with the \"Theme Toggle: Select Light Theme\" command.",
+          "scope": "application"
+        },
+        "themeToggle.darkTheme": {
+          "type": "string",
+          "default": "Default Dark Modern",
+          "description": "The theme to use for dark mode. Set this with the \"Theme Toggle: Select Dark Theme\" command.",
+          "scope": "application"
+        },
+        "themeToggle.mode": {
+          "type": "string",
+          "enum": [
+            "manualToggle",
+            "systemPreference",
+            "sunriseSunset",
+            "manualSchedule"
+          ],
+          "enumDescriptions": [
+            "Switch only when you run the toggle command or click the status bar item.",
+            "Follow the operating system's light/dark appearance setting.",
+            "Switch automatically based on local sunrise and sunset times.",
+            "Switch at user-defined times of day."
+          ],
+          "default": "manualToggle",
+          "description": "How the active theme is chosen.",
+          "scope": "application"
+        },
+        "themeToggle.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Master switch for automatic theme switching. When off, only the manual toggle command changes the theme.",
+          "scope": "application"
+        },
+        "themeToggle.showNotifications": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show a notification when the theme changes automatically.",
+          "scope": "application"
+        },
+        "themeToggle.latitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "description": "Latitude for sunrise/sunset calculation. Leave empty to auto-detect via IP geolocation.",
+          "scope": "application"
+        },
+        "themeToggle.longitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "description": "Longitude for sunrise/sunset calculation. Leave empty to auto-detect via IP geolocation.",
+          "scope": "application"
+        },
+        "themeToggle.schedule.lightTime": {
+          "type": "string",
+          "default": "07:00",
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+          "patternErrorMessage": "Use 24-hour HH:MM format, e.g. 07:00.",
+          "description": "Time of day to switch to the light theme (Manual Schedule mode). 24-hour HH:MM.",
+          "scope": "application"
+        },
+        "themeToggle.schedule.darkTime": {
+          "type": "string",
+          "default": "19:00",
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+          "patternErrorMessage": "Use 24-hour HH:MM format, e.g. 19:00.",
+          "description": "Time of day to switch to the dark theme (Manual Schedule mode). 24-hour HH:MM.",
+          "scope": "application"
+        }
+      }
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "icon": "media/icon.png",
+  "engines": {
+    "node": ">=20.12",
+    "vscode": "^1.74.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
