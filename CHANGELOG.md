@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/dm3yb/lumina-theme-toggle-extension/compare/v1.1.3...v1.1.4) (2026-06-14)
+
+
+### Bug Fixes
+
+* update extension icon and repository links ([04dccca](https://github.com/dm3yb/lumina-theme-toggle-extension/commit/04dccca67913795e637bb6acb3c024307c621681))
+
 ## [1.1.3](https://github.com/dm3yb/vscode-theme-toggle/compare/v1.1.2...v1.1.3) (2026-06-13)
 
 
