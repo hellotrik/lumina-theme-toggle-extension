@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import type { SwitchMode } from "./config";
-import { config } from "./config";
+import { config, writeTarget } from "./config";
 import { resolveCoordinates } from "./location";
 import { log } from "./log";
 import type { ScheduleResult, ThemeKind } from "./schedule";
@@ -34,7 +34,7 @@ async function applyKind(kind: ThemeKind, isAutomatic: boolean) {
   if (getActiveColorTheme() === themeId) {
     return;
   }
-  await setActiveColorTheme(themeId);
+  await setActiveColorTheme(themeId, writeTarget());
   log.info(`Applied ${kind} theme: ${themeId}`);
   if (isAutomatic && config.showNotifications) {
     void vscode.window.showInformationMessage(
@@ -131,10 +131,16 @@ export function createThemeController(
 
       case "systemPreference":
         /* Delegate to VS Code: it follows the OS and switches between the
-           preferred light/dark themes for us. */
+           preferred light/dark themes for us. Those host settings are global
+           (application scope), so this mode always follows the OS across every
+           window regardless of `applyTo`. */
         await setPreferredThemes(config.lightTheme, config.darkTheme);
         await setAutoDetectColorScheme(true);
-        log.info("System Preference mode: following OS appearance");
+        log.info(
+          config.applyTo === "workspace"
+            ? "System Preference mode: following OS appearance (global; not workspace-scoped)"
+            : "System Preference mode: following OS appearance",
+        );
         break;
 
       case "sunriseSunset":

@@ -7,11 +7,13 @@ import * as vscode from "vscode";
 const WORKBENCH = "workbench";
 const WINDOW = "window";
 
-/** Write the active color theme. Applies immediately, no reload required. */
-export function setActiveColorTheme(themeId: string): Thenable<void> {
-  return vscode.workspace
-    .getConfiguration(WORKBENCH)
-    .update("colorTheme", themeId, vscode.ConfigurationTarget.Global);
+/** Write the active color theme to the given target. Applies immediately, no
+    reload required. The caller picks the target (global vs workspace). */
+export function setActiveColorTheme(
+  themeId: string,
+  target: vscode.ConfigurationTarget,
+): Thenable<void> {
+  return vscode.workspace.getConfiguration(WORKBENCH).update("colorTheme", themeId, target);
 }
 
 export function getActiveColorTheme(): string | undefined {
