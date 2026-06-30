@@ -104,17 +104,31 @@
     "configuration": {
       "title": "Theme Toggle",
       "properties": {
+        "themeToggle.applyTo": {
+          "type": "string",
+          "enum": [
+            "user",
+            "workspace"
+          ],
+          "enumDescriptions": [
+            "Write theme changes to your global user settings (affects every window).",
+            "Write theme changes to the current workspace only (falls back to user settings when no workspace is open). Note: System Preference mode always follows the OS globally."
+          ],
+          "default": "user",
+          "description": "Where Theme Toggle writes the active theme: your global user settings, or the current workspace only.",
+          "scope": "window"
+        },
         "themeToggle.lightTheme": {
           "type": "string",
           "default": "Default Light Modern",
           "description": "The theme to use for light mode. Set this with the \"Theme Toggle: Select Light Theme\" command.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.darkTheme": {
           "type": "string",
           "default": "Default Dark Modern",
           "description": "The theme to use for dark mode. Set this with the \"Theme Toggle: Select Dark Theme\" command.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.mode": {
           "type": "string",
@@ -132,19 +146,19 @@
           ],
           "default": "manualToggle",
           "description": "How the active theme is chosen.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.enabled": {
           "type": "boolean",
           "default": true,
           "description": "Master switch for automatic theme switching. When off, only the manual toggle command changes the theme.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.showNotifications": {
           "type": "boolean",
           "default": false,
           "description": "Show a notification when the theme changes automatically.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.latitude": {
           "type": [
@@ -153,7 +167,7 @@
           ],
           "default": null,
           "description": "Latitude for sunrise/sunset calculation. Leave empty to auto-detect via IP geolocation.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.longitude": {
           "type": [
@@ -162,7 +176,7 @@
           ],
           "default": null,
           "description": "Longitude for sunrise/sunset calculation. Leave empty to auto-detect via IP geolocation.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.schedule.lightTime": {
           "type": "string",
@@ -170,7 +184,7 @@
           "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
           "patternErrorMessage": "Use 24-hour HH:MM format, e.g. 07:00.",
           "description": "Time of day to switch to the light theme (Manual Schedule mode). 24-hour HH:MM.",
-          "scope": "application"
+          "scope": "window"
         },
         "themeToggle.schedule.darkTime": {
           "type": "string",
@@ -178,7 +192,7 @@
           "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
           "patternErrorMessage": "Use 24-hour HH:MM format, e.g. 19:00.",
           "description": "Time of day to switch to the dark theme (Manual Schedule mode). 24-hour HH:MM.",
-          "scope": "application"
+          "scope": "window"
         }
       }
     }

@@ -57,6 +57,7 @@ Toggle automatic switching on/off at any time with **Theme Toggle: Enable/Disabl
 
 | Setting                          | Default                | Description                                                   |
 | -------------------------------- | ---------------------- | ------------------------------------------------------------- |
+| `themeToggle.applyTo`            | `user`                 | Where theme changes are written: `user` (global) or `workspace`. |
 | `themeToggle.lightTheme`         | `Default Light Modern` | Theme for light mode.                                         |
 | `themeToggle.darkTheme`          | `Default Dark Modern`  | Theme for dark mode.                                          |
 | `themeToggle.mode`               | `manualToggle`         | Active switching mode.                                        |
@@ -66,6 +67,15 @@ Toggle automatic switching on/off at any time with **Theme Toggle: Enable/Disabl
 | `themeToggle.longitude`          | `null`                 | Longitude for sunrise/sunset (auto-detected via IP if empty). |
 | `themeToggle.schedule.lightTime` | `07:00`                | Time to switch to light (Manual Schedule). 24-hour `HH:MM`.   |
 | `themeToggle.schedule.darkTime`  | `19:00`                | Time to switch to dark (Manual Schedule). 24-hour `HH:MM`.    |
+
+## Global vs. per-workspace
+
+By default Theme Toggle writes to your **global user settings**, so switching applies to every window. Set `themeToggle.applyTo` to `workspace` to make it write `workbench.colorTheme` to the **current workspace** instead — handy for giving different projects different themes (or different switching behaviour). Because the `themeToggle.*` settings are window-scoped, you can also configure a different mode, light/dark theme, or schedule per workspace in that project's `.vscode/settings.json`.
+
+Two caveats, both due to VS Code itself:
+
+- **System Preference** mode always follows the OS **globally**. It relies on `window.autoDetectColorScheme` and `workbench.preferredLight/DarkColorTheme`, which are application-scoped and can't be set per workspace.
+- When no folder/workspace is open (a bare window), `workspace` falls back to writing your global user settings.
 
 ## Sunrise / sunset & privacy
 

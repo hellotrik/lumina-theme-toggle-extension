@@ -5,6 +5,9 @@ import * as vscode from "vscode";
 
 export type SwitchMode = "manualToggle" | "systemPreference" | "sunriseSunset" | "manualSchedule";
 
+/** Where the extension writes settings: the user's global config, or the workspace. */
+export type ApplyTo = "user" | "workspace";
+
 const SECTION = "themeToggle";
 
 export const config = {
@@ -35,6 +38,9 @@ export const config = {
   get scheduleDarkTime(): string {
     return read<string>("schedule.darkTime", "19:00");
   },
+  get applyTo(): ApplyTo {
+    return read<ApplyTo>("applyTo", "user");
+  },
 
   async setMode(mode: SwitchMode): Promise<void> {
     await write("mode", mode);
@@ -60,10 +66,18 @@ function read<T>(key: string, fallback: T) {
   return vscode.workspace.getConfiguration(SECTION).get<T>(key, fallback);
 }
 
+/** The configuration target writes should use, derived from `applyTo`. Falls back
+    to the global user settings when "workspace" is selected but no workspace is
+    open (a bare window has nowhere to persist workspace settings). */
+export function writeTarget(): vscode.ConfigurationTarget {
+  const hasWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+  return config.applyTo === "workspace" && hasWorkspace
+    ? vscode.ConfigurationTarget.Workspace
+    : vscode.ConfigurationTarget.Global;
+}
+
 function write(key: string, value: unknown) {
-  return vscode.workspace
-    .getConfiguration(SECTION)
-    .update(key, value, vscode.ConfigurationTarget.Global);
+  return vscode.workspace.getConfiguration(SECTION).update(key, value, writeTarget());
 }
 
 /** True when a configuration change touches any `themeToggle.*` setting. */
