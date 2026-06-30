@@ -1,0 +1,40 @@
+name: Package
+
+# Builds the extension into a downloadable .vsix and uploads it as a workflow
+# artifact. Runs on demand (Actions -> Package -> Run workflow), on every push
+# to main, and on pull requests so the packaged build can be downloaded without
+# publishing to a marketplace.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Read package version
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Package extension
+        run: pnpm exec vsce package --no-dependencies -o "theme-toggle-${{ steps.pkg.outputs.version }}.vsix"
+
+      - name: Upload .vsix artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-toggle-vsix
+          path: "*.vsix"
+          if-no-files-found: error
