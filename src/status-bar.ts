@@ -1,5 +1,5 @@
-/* Status bar item showing the current kind + mode. Clicking it runs the toggle
-   command for a quick light/dark flip. */
+/* Status bar items: quick light/dark toggle, and VS Code's built-in color theme
+   picker (`workbench.action.selectTheme`). */
 
 import * as vscode from "vscode";
 import type { SwitchMode } from "./config";
@@ -17,11 +17,19 @@ export type StatusBar = {
   dispose(): void;
 };
 
-/** Create the status bar item and return handles to update and dispose it. */
+/** Create the status bar items and return handles to update and dispose them. */
 export function createStatusBar(): StatusBar {
-  const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  item.command = "themeToggle.toggle";
-  item.show();
+  const toggleItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  toggleItem.command = "themeToggle.toggle";
+
+  /* Higher priority sits further left; keep the theme picker beside the toggle. */
+  const themePickerItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 101);
+  themePickerItem.text = "$(color-mode)";
+  themePickerItem.tooltip = "Color Theme\nOpen Preferences: Color Theme";
+  themePickerItem.command = "workbench.action.selectTheme";
+
+  toggleItem.show();
+  themePickerItem.show();
 
   function buildTooltip(kind: ThemeKind, mode: SwitchMode, enabled: boolean) {
     const lines = [
@@ -39,11 +47,12 @@ export function createStatusBar(): StatusBar {
     update(kind, mode, enabled) {
       const icon = kind === "light" ? "$(theme-toggle-sun)" : "$(theme-toggle-moon)";
       const enabledSuffix = enabled || mode === "manualToggle" ? "" : " (off)";
-      item.text = `${icon} ${MODE_LABELS[mode]}${enabledSuffix}`;
-      item.tooltip = buildTooltip(kind, mode, enabled);
+      toggleItem.text = `${icon} ${MODE_LABELS[mode]}${enabledSuffix}`;
+      toggleItem.tooltip = buildTooltip(kind, mode, enabled);
     },
     dispose() {
-      item.dispose();
+      toggleItem.dispose();
+      themePickerItem.dispose();
     },
   };
 }
