@@ -3,6 +3,8 @@
 
 import * as vscode from "vscode";
 
+const EXTENSION_ID = "aerixity.theme-toggle";
+
 /** The kind of UI a contributed theme targets, as declared in its manifest. */
 export type ThemeUiKind = "light" | "dark" | "highContrast" | "highContrastLight";
 
@@ -50,6 +52,17 @@ export function getThemesForKind(kind: "light" | "dark"): InstalledTheme[] {
     return all.filter((theme) => theme.uiKind === "light" || theme.uiKind === "highContrastLight");
   }
   return all.filter((theme) => theme.uiKind === "dark" || theme.uiKind === "highContrast");
+}
+
+/** True when connected to a remote workspace and this extension runs on the remote
+    host. Theme packs install on the local UI host, so `vscode.extensions.all`
+    cannot see them from the remote host. */
+export function runsOnRemoteWorkspaceHost(): boolean {
+  if (!vscode.env.remoteName) {
+    return false;
+  }
+  const self = vscode.extensions.getExtension(EXTENSION_ID);
+  return self?.extensionKind === vscode.ExtensionKind.Workspace;
 }
 
 function normalizeUiTheme(uiTheme: unknown) {

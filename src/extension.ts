@@ -8,10 +8,17 @@ import { initLog, log } from "./log";
 import { createStatusBar } from "./status-bar";
 import { createThemeController } from "./theme-controller";
 import { registerCommands } from "./commands";
+import { runsOnRemoteWorkspaceHost } from "./theme-registry";
 
 export function activate(context: vscode.ExtensionContext): void {
   const output = initLog();
   log.info("Theme Toggle activated");
+  if (runsOnRemoteWorkspaceHost()) {
+    log.warn(
+      "Remote workspace host: theme QuickPick only lists extensions installed on the remote. " +
+        "Install Lumina locally to run in the UI extension host and see all themes.",
+    );
+  }
 
   const statusBar = createStatusBar();
   const controller = createThemeController(context, statusBar);

@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { config, type SwitchMode } from "./config";
 import { log } from "./log";
 import type { ThemeController } from "./theme-controller";
-import { getThemesForKind } from "./theme-registry";
+import { getThemesForKind, runsOnRemoteWorkspaceHost } from "./theme-registry";
 
 type ModePick = vscode.QuickPickItem & { mode: SwitchMode };
 
@@ -107,7 +107,25 @@ function promptTime(prompt: string, current: string) {
 }
 
 async function pickThemeForKind(kind: "light" | "dark", controller: ThemeController) {
+  if (runsOnRemoteWorkspaceHost()) {
+    log.warn(
+      "Running on the remote extension host — only themes installed on the remote are visible. " +
+        "Install Lumina on the local machine so it runs in the UI extension host.",
+    );
+  }
+
   const themes = getThemesForKind(kind);
+  if (themes.length === 0) {
+    const action = await vscode.window.showWarningMessage(
+      "Theme Toggle: no color themes found in this extension host.",
+      "Open theme picker",
+    );
+    if (action === "Open theme picker") {
+      await vscode.commands.executeCommand("workbench.action.selectTheme");
+    }
+    return;
+  }
+
   const current = kind === "light" ? config.lightTheme : config.darkTheme;
 
   const items: vscode.QuickPickItem[] = themes.map((theme) => ({

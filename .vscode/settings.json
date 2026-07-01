@@ -1,4 +1,5 @@
 {
     "themeToggle.lightTheme": "Quiet Light",
-    "workbench.colorTheme": "Quiet Light"
+    "workbench.colorTheme": "Solarized Dark",
+    "themeToggle.darkTheme": "Solarized Dark"
 }
