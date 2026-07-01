@@ -35,15 +35,11 @@ function buildPickerTooltip(themeLabel: string) {
 
 /** Create the status bar items and return handles to update and dispose them. */
 export function createStatusBar(): StatusBar {
-  const toggleItem = vscode.window.createStatusBarItem(
-    TOGGLE_ID,
-    vscode.StatusBarAlignment.Right,
-    {
-      location: { id: TOGGLE_ID, priority: TOGGLE_PRIORITY },
-      alignment: vscode.StatusBarAlignment.Right,
-      compact: true,
-    }
-  );
+  const toggleItem = vscode.window.createStatusBarItem(TOGGLE_ID, vscode.StatusBarAlignment.Right, {
+    location: { id: TOGGLE_ID, priority: TOGGLE_PRIORITY },
+    alignment: vscode.StatusBarAlignment.Right,
+    compact: true,
+  });
   toggleItem.name = GROUP_NAME;
   toggleItem.command = "themeToggle.toggle";
 
