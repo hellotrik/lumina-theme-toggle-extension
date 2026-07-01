@@ -3,6 +3,7 @@
 .github/**
 .husky/**
 src/**
+scripts/**
 test/**
 out/**
 node_modules/**
@@ -19,5 +20,6 @@ pnpm-lock.yaml
 CLAUDE.md
 media/*.svg
 **/*.map
+**/*.profraw
 **/*.ts
 .eslintrc*

@@ -81,7 +81,7 @@ export function createThemeController(
   /* Disable native auto-detect (so our writes take effect), set the theme, and
      arm the timer for the next transition. */
   async function drive(result: ScheduleResult, isAutomatic: boolean) {
-    await setAutoDetectColorScheme(false);
+    await setAutoDetectColorScheme(false, writeTarget());
     await applyKind(result.kind, isAutomatic);
     if (result.nextTransitionMs !== undefined) {
       armTimer(result.nextTransitionMs);
@@ -131,16 +131,11 @@ export function createThemeController(
 
       case "systemPreference":
         /* Delegate to VS Code: it follows the OS and switches between the
-           preferred light/dark themes for us. Those host settings are global
-           (application scope), so this mode always follows the OS across every
-           window regardless of `applyTo`. */
-        await setPreferredThemes(config.lightTheme, config.darkTheme);
-        await setAutoDetectColorScheme(true);
-        log.info(
-          config.applyTo === "workspace"
-            ? "System Preference mode: following OS appearance (global; not workspace-scoped)"
-            : "System Preference mode: following OS appearance",
-        );
+           preferred light/dark themes for us. Writes use the same target as
+           every other command (`themeToggle.applyTo`). */
+        await setPreferredThemes(config.lightTheme, config.darkTheme, writeTarget());
+        await setAutoDetectColorScheme(true, writeTarget());
+        log.info("System Preference mode: following OS appearance");
         break;
 
       case "sunriseSunset":
@@ -167,7 +162,7 @@ export function createThemeController(
 
     /* Flip to the opposite of whatever is currently shown. */
     async toggleNow() {
-      await setAutoDetectColorScheme(false);
+      await setAutoDetectColorScheme(false, writeTarget());
       const nextKind: ThemeKind = isActiveThemeLight() ? "dark" : "light";
       await applyKind(nextKind, false);
       log.info(`Manual toggle -> ${nextKind}`);

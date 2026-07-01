@@ -13,6 +13,30 @@
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "icon": {
+        "id": "watch",
+        "tooltip": "esbuild watch（F5 默认构建）"
+      }
+    },
+    {
+      "label": "package",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/scripts/pack.sh", "--bump"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "icon": {
+        "id": "package",
+        "tooltip": "升版 + 打包 + 安装到 Cursor → dist/theme-toggle-<version>.vsix"
       }
     }
   ]

@@ -6,3 +6,4 @@ coverage/
 *.tsbuildinfo
 .vscode-test/
 .DS_Store
+*.profraw

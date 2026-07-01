@@ -20,23 +20,30 @@ export function getActiveColorTheme(): string | undefined {
   return vscode.workspace.getConfiguration(WORKBENCH).get<string>("colorTheme");
 }
 
-/**
- * Toggle VS Code's native OS-following behaviour. We only write when the value
- * actually differs, to avoid churning the user's settings file.
- */
-export async function setAutoDetectColorScheme(enabled: boolean): Promise<void> {
+/** Toggle VS Code's native OS-following behaviour. We only write when the value
+    actually differs, to avoid churning the user's settings file. The caller
+    picks the target (global vs workspace) via `themeToggle.applyTo`. */
+export async function setAutoDetectColorScheme(
+  enabled: boolean,
+  target: vscode.ConfigurationTarget,
+): Promise<void> {
   const cfg = vscode.workspace.getConfiguration(WINDOW);
   const current = cfg.get<boolean>("autoDetectColorScheme", false);
   if (current !== enabled) {
-    await cfg.update("autoDetectColorScheme", enabled, vscode.ConfigurationTarget.Global);
+    await cfg.update("autoDetectColorScheme", enabled, target);
   }
 }
 
-/** Mirror our chosen themes into VS Code's preferred-theme settings (System Preference mode). */
-export async function setPreferredThemes(lightThemeId: string, darkThemeId: string): Promise<void> {
+/** Mirror our chosen themes into VS Code's preferred-theme settings (System
+    Preference mode). The caller picks the target via `themeToggle.applyTo`. */
+export async function setPreferredThemes(
+  lightThemeId: string,
+  darkThemeId: string,
+  target: vscode.ConfigurationTarget,
+): Promise<void> {
   const cfg = vscode.workspace.getConfiguration(WORKBENCH);
-  await cfg.update("preferredLightColorTheme", lightThemeId, vscode.ConfigurationTarget.Global);
-  await cfg.update("preferredDarkColorTheme", darkThemeId, vscode.ConfigurationTarget.Global);
+  await cfg.update("preferredLightColorTheme", lightThemeId, target);
+  await cfg.update("preferredDarkColorTheme", darkThemeId, target);
 }
 
 /** Whether VS Code currently reports a light active theme. */
