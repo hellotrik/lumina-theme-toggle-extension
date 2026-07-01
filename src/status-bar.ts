@@ -38,7 +38,11 @@ export function createStatusBar(): StatusBar {
   const toggleItem = vscode.window.createStatusBarItem(
     TOGGLE_ID,
     vscode.StatusBarAlignment.Right,
-    TOGGLE_PRIORITY,
+    {
+      location: { id: TOGGLE_ID, priority: TOGGLE_PRIORITY },
+      alignment: vscode.StatusBarAlignment.Right,
+      compact: true,
+    }
   );
   toggleItem.name = GROUP_NAME;
   toggleItem.command = "themeToggle.toggle";
