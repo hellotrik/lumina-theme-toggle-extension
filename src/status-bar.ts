@@ -1,9 +1,16 @@
 /* Status bar items: quick light/dark toggle, and VS Code's built-in color theme
-   picker (`workbench.action.selectTheme`). */
+   picker (`workbench.action.selectTheme`). Both share one compact group. */
 
 import * as vscode from "vscode";
 import type { SwitchMode } from "./config";
 import type { ThemeKind } from "./schedule";
+import { resolveThemeLabel } from "./theme-registry";
+import { getActiveColorTheme } from "./workbench";
+
+const GROUP_NAME = "Lumina Theme";
+const TOGGLE_ID = "aerixity.theme-toggle.toggle";
+const PICKER_ID = "aerixity.theme-toggle.themePicker";
+const TOGGLE_PRIORITY = 100;
 
 const MODE_LABELS: Record<SwitchMode, string> = {
   manualToggle: "Manual",
@@ -17,21 +24,41 @@ export type StatusBar = {
   dispose(): void;
 };
 
+function shortenStatusLabel(label: string) {
+  const max = 22;
+  return label.length > max ? `${label.slice(0, max - 1)}…` : label;
+}
+
+function buildPickerTooltip(themeLabel: string) {
+  return `Color Theme: ${themeLabel}\nOpen Preferences: Color Theme`;
+}
+
 /** Create the status bar items and return handles to update and dispose them. */
 export function createStatusBar(): StatusBar {
-  const toggleItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  const toggleItem = vscode.window.createStatusBarItem(
+    TOGGLE_ID,
+    vscode.StatusBarAlignment.Right,
+    TOGGLE_PRIORITY,
+  );
+  toggleItem.name = GROUP_NAME;
   toggleItem.command = "themeToggle.toggle";
 
-  /* Higher priority sits further left; keep the theme picker beside the toggle. */
-  const themePickerItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 101);
-  themePickerItem.text = "$(color-mode)";
-  themePickerItem.tooltip = "Color Theme\nOpen Preferences: Color Theme";
+  const themePickerItem = vscode.window.createStatusBarItem(
+    PICKER_ID,
+    vscode.StatusBarAlignment.Right,
+    {
+      location: { id: TOGGLE_ID, priority: TOGGLE_PRIORITY },
+      alignment: vscode.StatusBarAlignment.Right,
+      compact: true,
+    },
+  );
+  themePickerItem.name = GROUP_NAME;
   themePickerItem.command = "workbench.action.selectTheme";
 
   toggleItem.show();
   themePickerItem.show();
 
-  function buildTooltip(kind: ThemeKind, mode: SwitchMode, enabled: boolean) {
+  function buildToggleTooltip(kind: ThemeKind, mode: SwitchMode, enabled: boolean) {
     const lines = [
       `Theme Toggle — ${kind === "light" ? "Light" : "Dark"} theme active`,
       `Mode: ${MODE_LABELS[mode]}`,
@@ -45,10 +72,13 @@ export function createStatusBar(): StatusBar {
 
   return {
     update(kind, mode, enabled) {
+      const themeLabel = resolveThemeLabel(getActiveColorTheme() ?? "");
       const icon = kind === "light" ? "$(theme-toggle-sun)" : "$(theme-toggle-moon)";
       const enabledSuffix = enabled || mode === "manualToggle" ? "" : " (off)";
       toggleItem.text = `${icon} ${MODE_LABELS[mode]}${enabledSuffix}`;
-      toggleItem.tooltip = buildTooltip(kind, mode, enabled);
+      toggleItem.tooltip = buildToggleTooltip(kind, mode, enabled);
+      themePickerItem.text = `$(color-mode) ${shortenStatusLabel(themeLabel)}`;
+      themePickerItem.tooltip = buildPickerTooltip(themeLabel);
     },
     dispose() {
       toggleItem.dispose();

@@ -54,6 +54,17 @@ export function getThemesForKind(kind: "light" | "dark"): InstalledTheme[] {
   return all.filter((theme) => theme.uiKind === "dark" || theme.uiKind === "highContrast");
 }
 
+/** Human-readable label for a `workbench.colorTheme` value (id or label). */
+export function resolveThemeLabel(themeId: string): string {
+  if (!themeId) {
+    return "Color Theme";
+  }
+  const match = getInstalledThemes().find(
+    (theme) => theme.id === themeId || theme.label === themeId,
+  );
+  return match?.label ?? themeId;
+}
+
 /** True when connected to a remote workspace and this extension runs on the remote
     host. Theme packs install on the local UI host, so `vscode.extensions.all`
     cannot see them from the remote host. */
