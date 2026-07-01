@@ -136,4 +136,5 @@ async function pickThemeForKind(kind: "light" | "dark", controller: ThemeControl
   }
   log.info(`Selected ${kind} theme: ${chosen.id}`);
   await controller.refresh("config");
+  await controller.applyKindNow(kind);
 }

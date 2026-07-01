@@ -46,6 +46,7 @@ async function applyKind(kind: ThemeKind, isAutomatic: boolean) {
 export type ThemeController = {
   refresh(reason: RefreshReason): Promise<void>;
   toggleNow(): Promise<void>;
+  applyKindNow(kind: ThemeKind): Promise<void>;
   onActiveThemeChanged(): void;
   dispose(): void;
 };
@@ -166,6 +167,14 @@ export function createThemeController(
       const nextKind: ThemeKind = isActiveThemeLight() ? "dark" : "light";
       await applyKind(nextKind, false);
       log.info(`Manual toggle -> ${nextKind}`);
+      updateStatusBar(config.mode, config.enabled);
+    },
+
+    /* Apply the configured theme for `kind` immediately (e.g. after picking in QuickPick). */
+    async applyKindNow(kind: ThemeKind) {
+      await setAutoDetectColorScheme(false, writeTarget());
+      await applyKind(kind, false);
+      log.info(`Applied ${kind} theme after selection`);
       updateStatusBar(config.mode, config.enabled);
     },
 
