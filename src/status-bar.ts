@@ -1,5 +1,5 @@
-/* Status bar items: quick light/dark toggle, and VS Code's built-in color theme
-   picker (`workbench.action.selectTheme`). Both share one compact group. */
+/* Status bar items: quick light/dark toggle, and the active theme name which
+   opens the theme picker for the current kind (light or dark). Both share one compact group. */
 
 import * as vscode from "vscode";
 import type { SwitchMode } from "./config";
@@ -29,8 +29,8 @@ function shortenStatusLabel(label: string) {
   return label.length > max ? `${label.slice(0, max - 1)}…` : label;
 }
 
-function buildPickerTooltip(themeLabel: string) {
-  return `Color Theme: ${themeLabel}\nOpen Preferences: Color Theme`;
+function buildPickerTooltip(themeLabel: string, kind: ThemeKind) {
+  return `Color Theme: ${themeLabel}\nSelect the ${kind} theme`;
 }
 
 /** Create the status bar items and return handles to update and dispose them. */
@@ -53,7 +53,7 @@ export function createStatusBar(): StatusBar {
     },
   );
   themePickerItem.name = GROUP_NAME;
-  themePickerItem.command = "workbench.action.selectTheme";
+  themePickerItem.command = "themeToggle.selectLightTheme";
 
   toggleItem.show();
   themePickerItem.show();
@@ -78,7 +78,9 @@ export function createStatusBar(): StatusBar {
       toggleItem.text = `${icon} ${MODE_LABELS[mode]}${enabledSuffix}`;
       toggleItem.tooltip = buildToggleTooltip(kind, mode, enabled);
       themePickerItem.text = `$(color-mode) ${shortenStatusLabel(themeLabel)}`;
-      themePickerItem.tooltip = buildPickerTooltip(themeLabel);
+      themePickerItem.command =
+        kind === "light" ? "themeToggle.selectLightTheme" : "themeToggle.selectDarkTheme";
+      themePickerItem.tooltip = buildPickerTooltip(themeLabel, kind);
     },
     dispose() {
       toggleItem.dispose();
