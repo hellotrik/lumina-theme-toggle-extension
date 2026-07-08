@@ -4,7 +4,11 @@ import * as vscode from "vscode";
 import { config, type SwitchMode } from "./config";
 import { log } from "./log";
 import type { ThemeController } from "./theme-controller";
-import { getThemesForKind, runsOnRemoteWorkspaceHost } from "./theme-registry";
+import {
+  getThemeGroupsForKind,
+  type InstalledTheme,
+  runsOnRemoteWorkspaceHost,
+} from "./theme-registry";
 
 type ModePick = vscode.QuickPickItem & { mode: SwitchMode };
 
@@ -106,6 +110,46 @@ function promptTime(prompt: string, current: string) {
   });
 }
 
+type ThemePick = vscode.QuickPickItem & { themeId: string };
+
+function buildThemePickItems(kind: "light" | "dark", current: string): ThemePick[] {
+  const groups = getThemeGroupsForKind(kind);
+  const items: ThemePick[] = [];
+
+  if (groups.standard.length > 0) {
+    items.push({
+      label: kind === "light" ? "Light themes" : "Dark themes",
+      kind: vscode.QuickPickItemKind.Separator,
+      themeId: "",
+    });
+    for (const theme of groups.standard) {
+      items.push(toThemePick(theme, current));
+    }
+  }
+
+  if (groups.highContrast.length > 0) {
+    items.push({
+      label: kind === "light" ? "High contrast (light)" : "High contrast (dark)",
+      kind: vscode.QuickPickItemKind.Separator,
+      themeId: "",
+    });
+    for (const theme of groups.highContrast) {
+      items.push(toThemePick(theme, current));
+    }
+  }
+
+  return items;
+}
+
+function toThemePick(theme: InstalledTheme, current: string): ThemePick {
+  return {
+    label: theme.label,
+    description: theme.id === current ? "current" : undefined,
+    detail: theme.extensionName,
+    themeId: theme.id,
+  };
+}
+
 async function pickThemeForKind(kind: "light" | "dark", controller: ThemeController) {
   if (runsOnRemoteWorkspaceHost()) {
     log.warn(
@@ -114,8 +158,8 @@ async function pickThemeForKind(kind: "light" | "dark", controller: ThemeControl
     );
   }
 
-  const themes = getThemesForKind(kind);
-  if (themes.length === 0) {
+  const items = buildThemePickItems(kind, kind === "light" ? config.lightTheme : config.darkTheme);
+  if (items.length === 0) {
     const action = await vscode.window.showWarningMessage(
       "Theme Toggle: no color themes found in this extension host.",
       "Open theme picker",
@@ -126,33 +170,20 @@ async function pickThemeForKind(kind: "light" | "dark", controller: ThemeControl
     return;
   }
 
-  const current = kind === "light" ? config.lightTheme : config.darkTheme;
-
-  const items: vscode.QuickPickItem[] = themes.map((theme) => ({
-    label: theme.label,
-    description: theme.id === current ? "current" : undefined,
-    detail: theme.extensionName,
-  }));
-
   const picked = await vscode.window.showQuickPick(items, {
     placeHolder: `Select the ${kind} theme`,
     matchOnDetail: true,
   });
-  if (!picked) {
-    return;
-  }
-
-  const chosen = themes.find((theme) => theme.label === picked.label);
-  if (!chosen) {
+  if (!picked?.themeId) {
     return;
   }
 
   if (kind === "light") {
-    await config.setLightTheme(chosen.id);
+    await config.setLightTheme(picked.themeId);
   } else {
-    await config.setDarkTheme(chosen.id);
+    await config.setDarkTheme(picked.themeId);
   }
-  log.info(`Selected ${kind} theme: ${chosen.id}`);
+  log.info(`Selected ${kind} theme: ${picked.themeId}`);
   await controller.refresh("config");
   await controller.applyKindNow(kind);
 }

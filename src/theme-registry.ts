@@ -45,13 +45,30 @@ function getInstalledThemes(): InstalledTheme[] {
   return themes.sort((a, b) => a.label.localeCompare(b.label));
 }
 
-/** Themes suitable for a given side of the toggle. */
-export function getThemesForKind(kind: "light" | "dark"): InstalledTheme[] {
+export type ThemeGroups = {
+  standard: InstalledTheme[];
+  highContrast: InstalledTheme[];
+};
+
+/** Installed themes for one side of the toggle, split into standard and high-contrast. */
+export function getThemeGroupsForKind(kind: "light" | "dark"): ThemeGroups {
   const all = getInstalledThemes();
   if (kind === "light") {
-    return all.filter((theme) => theme.uiKind === "light" || theme.uiKind === "highContrastLight");
+    return {
+      standard: all.filter((theme) => theme.uiKind === "light"),
+      highContrast: all.filter((theme) => theme.uiKind === "highContrastLight"),
+    };
   }
-  return all.filter((theme) => theme.uiKind === "dark" || theme.uiKind === "highContrast");
+  return {
+    standard: all.filter((theme) => theme.uiKind === "dark"),
+    highContrast: all.filter((theme) => theme.uiKind === "highContrast"),
+  };
+}
+
+/** Flat list of every theme for `kind` (standard first, then high contrast). */
+export function getThemesForKind(kind: "light" | "dark"): InstalledTheme[] {
+  const groups = getThemeGroupsForKind(kind);
+  return [...groups.standard, ...groups.highContrast];
 }
 
 /** Human-readable label for a `workbench.colorTheme` value (id or label). */
