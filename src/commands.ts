@@ -1,7 +1,7 @@
 /* Registers the Command Palette commands and the QuickPick UIs they drive. */
 
 import * as vscode from "vscode";
-import { config, type SwitchMode } from "./config";
+import { config, writeTarget, type SwitchMode } from "./config";
 import { log } from "./log";
 import type { ThemeController } from "./theme-controller";
 import {
@@ -9,6 +9,7 @@ import {
   type InstalledTheme,
   runsOnRemoteWorkspaceHost,
 } from "./theme-registry";
+import { getActiveColorTheme, setActiveColorTheme, setAutoDetectColorScheme } from "./workbench";
 
 type ModePick = vscode.QuickPickItem & { mode: SwitchMode };
 
@@ -150,6 +151,8 @@ function toThemePick(theme: InstalledTheme, current: string): ThemePick {
   };
 }
 
+/* Live-preview picker, matching Preferences: Color Theme: arrow keys apply the
+   hovered theme immediately; Esc restores whatever was active when the picker opened. */
 async function pickThemeForKind(kind: "light" | "dark", controller: ThemeController) {
   if (runsOnRemoteWorkspaceHost()) {
     log.warn(
@@ -158,7 +161,8 @@ async function pickThemeForKind(kind: "light" | "dark", controller: ThemeControl
     );
   }
 
-  const items = buildThemePickItems(kind, kind === "light" ? config.lightTheme : config.darkTheme);
+  const configured = kind === "light" ? config.lightTheme : config.darkTheme;
+  const items = buildThemePickItems(kind, configured);
   if (items.length === 0) {
     const action = await vscode.window.showWarningMessage(
       "Theme Toggle: no color themes found in this extension host.",
@@ -170,20 +174,77 @@ async function pickThemeForKind(kind: "light" | "dark", controller: ThemeControl
     return;
   }
 
-  const picked = await vscode.window.showQuickPick(items, {
-    placeHolder: `Select the ${kind} theme`,
-    matchOnDetail: true,
-  });
-  if (!picked?.themeId) {
-    return;
+  const originalTheme = getActiveColorTheme();
+  const target = writeTarget();
+  await setAutoDetectColorScheme(false, target);
+
+  const quickPick = vscode.window.createQuickPick<ThemePick>();
+  quickPick.placeholder = `Select the ${kind} theme`;
+  quickPick.matchOnDetail = true;
+  quickPick.items = items;
+  const currentItem = items.find((item) => item.themeId === configured);
+  if (currentItem) {
+    quickPick.activeItems = [currentItem];
   }
 
-  if (kind === "light") {
-    await config.setLightTheme(picked.themeId);
-  } else {
-    await config.setDarkTheme(picked.themeId);
+  let acceptedId: string | undefined;
+  let previewing: string | undefined;
+
+  async function preview(themeId: string) {
+    if (!themeId || themeId === previewing) {
+      return;
+    }
+    previewing = themeId;
+    try {
+      await setActiveColorTheme(themeId, target);
+    } catch (err: unknown) {
+      log.warn(`Theme preview failed for ${themeId}: ${String(err)}`);
+    }
   }
-  log.info(`Selected ${kind} theme: ${picked.themeId}`);
-  await controller.refresh("config");
-  await controller.applyKindNow(kind);
+
+  await new Promise<void>((resolve) => {
+    const disposables: vscode.Disposable[] = [
+      quickPick.onDidChangeActive((active) => {
+        const item = active[0];
+        if (item?.themeId) {
+          void preview(item.themeId);
+        }
+      }),
+      quickPick.onDidAccept(() => {
+        const item = quickPick.selectedItems[0] ?? quickPick.activeItems[0];
+        if (!item?.themeId) {
+          return;
+        }
+        acceptedId = item.themeId;
+        quickPick.hide();
+      }),
+      quickPick.onDidHide(() => {
+        for (const disposable of disposables) {
+          disposable.dispose();
+        }
+        quickPick.dispose();
+        void (async () => {
+          try {
+            if (acceptedId) {
+              if (kind === "light") {
+                await config.setLightTheme(acceptedId);
+              } else {
+                await config.setDarkTheme(acceptedId);
+              }
+              log.info(`Selected ${kind} theme: ${acceptedId}`);
+              await controller.refresh("config");
+              await controller.applyKindNow(kind);
+            } else if (originalTheme !== undefined && getActiveColorTheme() !== originalTheme) {
+              await setActiveColorTheme(originalTheme, target);
+            }
+          } catch (err: unknown) {
+            log.warn(`Theme picker finalize failed: ${String(err)}`);
+          } finally {
+            resolve();
+          }
+        })();
+      }),
+    ];
+    quickPick.show();
+  });
 }
